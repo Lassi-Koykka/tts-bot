@@ -57,24 +57,30 @@ client.on('message', async message => {
         .slice(prefix.length).trim()
         .slice(commandName.length).trim()
 
-        var gtts = new gTTS(text, 'fi');
+        if(text.length > 0) {
 
-        var tempFilePath = path.join(__dirname, "audio", "temp.mp3");
 
-        gtts.save(tempFilePath, (err) => {
-            if (err) console.log(err) 
-            else {
-                const vc = message.member.voice.channel;
-                const promisifiedPlay = util.promisify(play)
+            message.channel.send("Öhöm...")
 
-                promisifiedPlay(tempFilePath, vc).then(() => {
-                    fs.rmSync(tempFilePath);
-                });
-            } 
-        })
+            var tempFilePath = path.join(__dirname, "audio", "temp.mp3");
+            
+            var gtts = new gTTS(text, 'fi');
 
-    } else if (commandName === 'saveclip' && args.length > 1 && message.author.id === adminID) {
-        const newFileName = args.shift().toLowerCase()     
+            gtts.save(tempFilePath, (err) => {
+                if (err) console.log(err) 
+                else {
+                    const vc = message.member.voice.channel;
+                    const promisifiedPlay = util.promisify(play)
+                    
+                    promisifiedPlay(tempFilePath, vc).then(() => {
+                        fs.rmSync(tempFilePath);
+                    });
+                } 
+            })
+        }
+            
+        } else if (commandName === 'saveclip' && args.length > 1 && message.author.id === adminID) {
+            const newFileName = args.shift().toLowerCase()     
         const text = message.content
         .slice(prefix.length).trim()
         .slice(commandName.length).trim()
