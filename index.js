@@ -56,11 +56,10 @@ client.on('message', async message => {
         const text = message.content
         .slice(prefix.length).trim()
         .slice(commandName.length).trim()
+        .replace(/[0-9]/g, '');
 
         if(text.length > 0) {
-
-
-            message.channel.send("Öhöm...")
+            message.channel.send("Öhöm...");
 
             var tempFilePath = path.join(__dirname, "audio", "temp.mp3");
             
@@ -109,6 +108,7 @@ client.on('message', async message => {
 
     } else if (files.includes(commandName) && fs.existsSync(filePath) && (!message.guild.voice || !message.guild.voice.connection)){
         const vc = message.member.voice.channel;
+        message.channel.send("Öhöm...");
         play(filePath, vc);
     }
     
