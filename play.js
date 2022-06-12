@@ -8,6 +8,7 @@ const path = require('path')
 const play = (fileName, vc) => {
     if (vc) {
         fileBaseName = path.basename(fileName);
+        console.log("FILENAME", fileName)
         try {     
             vc.join().then(connection => {
                 const dispatcher = connection.play(fileName);
@@ -16,8 +17,8 @@ const play = (fileName, vc) => {
                     console.log(fileBaseName + ' is now playing!');
                 });
     
+                console.log(fileBaseName + ' has finished playing!');
                 dispatcher.on('finish', () => {
-                    console.log(fileBaseName + ' has finished playing!');
                     vc.leave();
                 });
     

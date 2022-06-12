@@ -4,13 +4,19 @@ const util = require('util');
 const path = require('path');
 const play = require('./play')
 const gTTS = require('gtts');
-
+const {insults, lines} = require("./matti.json")
 
 const promisifiedPlay = util.promisify(play)
 
 const client = new Discord.Client();
 
-const commandsList = ["help - Get info about all available commands", "say [text] - Say the text out loud", "[clip name] - Play a specific audio clip", "saveclip [clip name] [text] - ADMIN ONLY Save a new audio clip", "deleteclip [clip name] - ADMIN ONLY Delete audio clip"]
+const commandsList = [
+    "help - Get info about all available commands", 
+    "say [text] - Say the text out loud", 
+    "[clip name] - Play a specific audio clip", 
+    "saveclip [clip name] [text] - ADMIN ONLY Save a new audio clip",
+    "deleteclip [clip name] - ADMIN ONLY Delete audio clip"
+]
 
 const audioDir = path.join(__dirname, 'audio');
 //Create dir for audio directory if it doesn't already exist;
@@ -43,7 +49,11 @@ client.on('message', async message => {
 
     // HELP: List available commands
     // Or play the file with the same name as the command if it exists
-    if (commandName === 'help') {
+    if (!commandName) { 
+        // Post matti clip
+        const text = lines[Math.floor(Math.random() * lines.length)]
+        message.channel.send(text)
+    } else if (commandName === 'help') {
         let commandStr = "***Available commands:***\n``" + commandsList.join("\n") + "``";
         message.channel.send(commandStr);
         if(files.length > 0) {
@@ -52,7 +62,7 @@ client.on('message', async message => {
         }
 
     } else if (commandName === 'say' && (!message.guild.voice || !message.guild.voice.connection)) {
-
+        // Speak
         const text = message.content
         .slice(prefix.length).trim()
         .slice(commandName.length).trim()
@@ -62,7 +72,7 @@ client.on('message', async message => {
             message.channel.send("Öhöm...");
 
             var tempFilePath = path.join(__dirname, "audio", "temp.mp3");
-            
+
             var gtts = new gTTS(text, 'fi');
 
             gtts.save(tempFilePath, (err) => {
@@ -70,14 +80,14 @@ client.on('message', async message => {
                 else {
                     const vc = message.member.voice.channel;
                     const promisifiedPlay = util.promisify(play)
-                    
+
                     promisifiedPlay(tempFilePath, vc).then(() => {
                         fs.rmSync(tempFilePath);
                     });
                 } 
             })
         }
-            
+
         } else if (commandName === 'saveclip' && args.length > 1 && message.author.id === adminID) {
             const newFileName = args.shift().toLowerCase()     
         const text = message.content
@@ -97,6 +107,7 @@ client.on('message', async message => {
         })
 
     } else if (commandName === 'deleteclip' && args.length === 1 && message.author.id === adminID) {
+        // Delete a saved clip
         const fileName = args.shift().toLowerCase()
         const deletePath = path.join(__dirname, "audio", fileName + ".mp3");
         if(fs.existsSync(deletePath)) {
@@ -106,11 +117,33 @@ client.on('message', async message => {
             files = fs.readdirSync(audioDir).map(file => { return file.split('.')[0] })
         }
 
+    } else if(commandName === 'saatana' && (!message.guild.voice || !message.guild.voice.connection)) {
+        const text = lines[Math.floor(Math.random() * lines.length)]
+
+        var tempFilePath = path.join(__dirname, "audio", "temp.mp3");
+
+        var gtts = new gTTS(text, 'fi');
+
+        message.channel.send("Öhöm...");
+        gtts.save(tempFilePath, (err) => {
+            if (err) console.log(err) 
+            else {
+                const vc = message.member.voice.channel;
+
+                const promisifiedPlay = util.promisify(play)
+                promisifiedPlay(tempFilePath, vc).then(() => {
+                    fs.rmSync(tempFilePath);
+                });
+            } 
+        })
+    } else if(commandName === "hauku" && message.mentions?.users?.first()) {
+        const user = message.mentions.users.first()
+        message.channel.send(`<@${user.id}> ` + insults[Math.floor(Math.random() * insults.length)])
     } else if (files.includes(commandName) && fs.existsSync(filePath) && (!message.guild.voice || !message.guild.voice.connection)){
         const vc = message.member.voice.channel;
         message.channel.send("Öhöm...");
         play(filePath, vc);
     }
     
-})    
+})
 
